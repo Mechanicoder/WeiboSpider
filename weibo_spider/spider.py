@@ -365,7 +365,7 @@ def _get_config():
                     os.getcwd())
         sys.exit()
     try:
-        with open(config_path) as f:
+        with open(config_path, 'r', encoding='utf-8') as f:
             config = json.loads(f.read())
             return config
     except ValueError:
