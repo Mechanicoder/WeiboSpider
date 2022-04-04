@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 from . import config_util, datetime_util
 from .downloader import AvatarPictureDownloader
-from .parser import AlbumParser, IndexParser, PageParser, PhotoParser
+from .parser import AlbumParser, IndexParser, PageParser, PhotoParser, TopicParser, WbCommentParser
 from .user import User
 
 FLAGS = flags.FLAGS
@@ -99,16 +99,16 @@ class Spider:
                         user_id for user_id in user_id_list
                         if isinstance(user_id, dict)
                     ])) + list(
-                        map(
-                            lambda x: {
-                                'user_uri': x,
-                                'since_date': self.since_date,
-                                'end_date': self.end_date
-                            },
-                            set([
-                                user_id for user_id in user_id_list
-                                if not isinstance(user_id, dict)
-                            ])))
+                map(
+                    lambda x: {
+                        'user_uri': x,
+                        'since_date': self.since_date,
+                        'end_date': self.end_date
+                    },
+                    set([
+                        user_id for user_id in user_id_list
+                        if not isinstance(user_id, dict)
+                    ])))
             if FLAGS.u:
                 config_util.add_user_uri_list(self.user_config_file_path,
                                               user_id_list)
@@ -123,6 +123,8 @@ class Spider:
         self.user = User()  # 存储爬取到的用户信息
         self.got_num = 0  # 存储爬取到的微博数
         self.weibo_id_list = []  # 存储爬取到的所有微博id
+        self.topic = config.get("topic", 1)  # 是否爬取话题
+        self.topic_list = config["topic_list"]  # 话题列表
 
     def write_weibo(self, weibos):
         """将爬取到的信息写入文件或数据库"""
@@ -178,7 +180,7 @@ class Spider:
                     weibos, self.weibo_id_list, to_continue = PageParser(
                         self.cookie,
                         self.user_config, page, self.filter).get_one_page(
-                            self.weibo_id_list)  # 获取第page页的全部微博
+                        self.weibo_id_list)  # 获取第page页的全部微博
                     logger.info(
                         u'%s已获取%s(%s)的第%d页微博%s',
                         '-' * 30,
@@ -329,23 +331,44 @@ class Spider:
         except Exception as e:
             logger.exception(e)
 
+    def start_with_user_list(self):
+        if not self.user_config_list:
+            logger.info(
+                u'没有配置有效的user_id，请通过config.json或user_id_list.txt配置user_id')
+            return
+        user_count = 0
+        user_count1 = random.randint(*self.random_wait_pages)
+        random_users = random.randint(*self.random_wait_pages)
+        for user_config in self.user_config_list:
+            if (user_count - user_count1) % random_users == 0:
+                sleep(random.randint(*self.random_wait_seconds))
+                user_count1 = user_count
+                random_users = random.randint(*self.random_wait_pages)
+            user_count += 1
+            self.get_one_user(user_config)
+
+    def start_with_topic_list(self):
+        for topic in self.topic_list:
+            topic_wb_urls = TopicParser(self.cookie, topic).get_topic_weibos()
+            if not topic_wb_urls:
+                logger.info("未得到任何微博")
+                return
+            logger.info("话题 " + topic + " 数量 " + str(len(topic_wb_urls)))
+            for wb_url in topic_wb_urls:
+                print(wb_url)
+
+            for wb_url in topic_wb_urls:
+                wbc_parser = WbCommentParser(self.cookie, wb_url)
+                wbc_parser.get_weibo_content()
+                wbc_parser.get_comments()
+
     def start(self):
         """运行爬虫"""
         try:
-            if not self.user_config_list:
-                logger.info(
-                    u'没有配置有效的user_id，请通过config.json或user_id_list.txt配置user_id')
-                return
-            user_count = 0
-            user_count1 = random.randint(*self.random_wait_pages)
-            random_users = random.randint(*self.random_wait_pages)
-            for user_config in self.user_config_list:
-                if (user_count - user_count1) % random_users == 0:
-                    sleep(random.randint(*self.random_wait_seconds))
-                    user_count1 = user_count
-                    random_users = random.randint(*self.random_wait_pages)
-                user_count += 1
-                self.get_one_user(user_config)
+            if self.topic:
+                self.start_with_topic_list()
+            else:
+                self.start_with_user_list()
         except Exception as e:
             logger.exception(e)
 

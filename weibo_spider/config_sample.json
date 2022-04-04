@@ -24,5 +24,7 @@
         "weibo_topics": ["spider_weibo"],
         "user_topics": ["spider_weibo"]
     },
-    "sqlite_config": "weibo.db"
+    "sqlite_config": "weibo.db",
+    "topic":1,
+    "topic_list": ["多地医疗队驰援上海"]
 }
