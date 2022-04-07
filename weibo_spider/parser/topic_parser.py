@@ -21,6 +21,9 @@ class TopicParser(Parser):
         self.url = self.make_topic_url(self.topic)
         self.selector = handle_html(self.cookie, self.url)
         html = self.selector.values()
+        if not html:
+            logger.warning(u'网页解析错误')
+            sys.exit()
         login_in = self.selector.xpath('//a[class="LoginBtn_btn_ShXeX LoginBtn_btna_1UuUq"]')
         if login_in:
             logger.warning(u'cookie错误或已过期,请按照README中方法重新获取')

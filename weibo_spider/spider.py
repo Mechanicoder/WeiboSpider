@@ -355,9 +355,6 @@ class Spider:
                 return
             logger.info("话题 " + topic + " 数量 " + str(len(topic_wb_urls)))
             for wb_url in topic_wb_urls:
-                print(wb_url)
-
-            for wb_url in topic_wb_urls:
                 wbc_parser = WbCommentParser(self.cookie, wb_url)
                 wbc_parser.get_weibo_content()
                 wbc_parser.get_comments()

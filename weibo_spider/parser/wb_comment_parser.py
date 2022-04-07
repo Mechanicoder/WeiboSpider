@@ -15,15 +15,15 @@ logger = logging.getLogger('spider.wb_comment_parser')
 
 class WbCommentParser(Parser):
     # 爬取微博内容及评论内容
-    def __init__(self, cookie, topic):
+    def __init__(self, cookie, wb_url):
         self.cookie = cookie
-        self.topic = topic
-        self.url = "https://s.weibo.com/weibo?q=%23%s%23" % (topic)
+        self.url = wb_url
         self.selector = handle_html(self.cookie, self.url)
 
     def get_weibo_content(self):
         # 获取微博内容
         try:
+
             pass
         except Exception as e:
             logger.exception(e)
@@ -31,3 +31,4 @@ class WbCommentParser(Parser):
     def get_comment(self):
         # 获取微博评论
         pass
+
