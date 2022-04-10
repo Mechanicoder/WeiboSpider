@@ -349,13 +349,13 @@ class Spider:
 
     def start_with_topic_list(self):
         for topic in self.topic_list:
-            topic_wb_urls = TopicParser(self.cookie, topic).get_topic_weibos()
-            if not topic_wb_urls:
+            topic_wb_keys = TopicParser(self.cookie, topic).get_topic_weibos()
+            if not topic_wb_keys:
                 logger.info("未得到任何微博")
                 return
-            logger.info("话题 " + topic + " 数量 " + str(len(topic_wb_urls)))
-            for wb_url in topic_wb_urls:
-                wbc_parser = WbCommentParser(self.cookie, wb_url)
+            logger.info("话题 " + topic + " 数量 " + str(len(topic_wb_keys)))
+            for wb_key in topic_wb_keys:
+                wbc_parser = WbCommentParser(self.cookie, wb_key)
                 wbc_parser.get_weibo_content()
                 wbc_parser.get_comments()
 

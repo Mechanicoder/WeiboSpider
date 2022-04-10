@@ -4,7 +4,7 @@ import sys
 from datetime import datetime, timedelta
 
 from .. import datetime_util
-from ..weibo import Weibo
+from ..weibo import Weibo, WeiboKey
 from .comment_parser import CommentParser
 from .mblog_picAll_parser import MblogPicAllParser
 from .parser import Parser
@@ -20,17 +20,17 @@ class TopicParser(Parser):
         self.topic = topic
         self.url = self.make_topic_url(self.topic)
         self.selector = handle_html(self.cookie, self.url)
-        html = self.selector.values()
-        if not html:
-            logger.warning(u'网页解析错误')
+        if not self.selector:
+            logger.warning(u'网页解析出现异常')
             sys.exit()
+
         login_in = self.selector.xpath('//a[class="LoginBtn_btn_ShXeX LoginBtn_btna_1UuUq"]')
         if login_in:
             logger.warning(u'cookie错误或已过期,请按照README中方法重新获取')
             sys.exit()
 
     def get_topic_weibos(self):
-        """获取话题全部微博"""
+        """获取话题全部微博，WeiboKey"""
         try:
             feed_list = self.get_feed_list(self.selector)
             if len(feed_list) == 0:
@@ -39,15 +39,16 @@ class TopicParser(Parser):
             more_page = self.selector.xpath('//ul[@node-type="feed_list_page_morelist"]')
             if more_page:
                 page_num = len(more_page[0].xpath('li'))
-                weibo_urls = []
+                weibo_keys = []
                 for page_id in range(1, page_num + 1):
                     self.url = self.make_topic_url(self.topic, page_id)
                     self.selector = handle_html(self.cookie, self.url)
                     feed_list = self.get_feed_list(self.selector)  # 微博数量
                     # logger.info("第 %d 页微博数量为 %d" % (page_id, len(feed_list)))
                     for weibo_feed in feed_list:
-                        weibo_urls.append(self.get_weibo_url(weibo_feed))
-                return weibo_urls
+                        # weibo_keys.append(self.get_weibo_url(weibo_feed))
+                        weibo_keys.append(self.get_weibo_key(weibo_feed))
+                return weibo_keys
         except Exception as e:
             logger.exception(e)
 
@@ -57,8 +58,8 @@ class TopicParser(Parser):
 
     def get_feed_list(self, page_root):
         # 获取网页上的所有微博节点
-        if selector:
-            return selector.xpath("//div[@action-type='feed_list_item']")
+        if page_root:
+            return page_root.xpath("//div[@action-type='feed_list_item']")
         else:
             return []
 
@@ -68,6 +69,20 @@ class TopicParser(Parser):
             if wb_url and wb_url.startswith('//weibo.com'):
                 return 'https:' + wb_url
         return ''
+
+    def get_weibo_key(self, weibo_feed):
+        # 获取微博 key 信息
+        weibo_key = WeiboKey()
+        weibo_key.mid = int(weibo_feed.xpath('@mid')[0]) # 评论 ID
+        wb_url = self.get_weibo_url(weibo_feed)
+        if wb_url:
+            # 获取用户 ID 和微博 ID
+            match = re.match('.+com/(\d+)/(.+)\?.+', wb_url)
+            if len(match.groups()) == 2:
+                weibo_key.uid = int(match.group(1))
+                weibo_key.wid = match.group(2)
+        return weibo_key
+
 
 
 def is_original(self, info):

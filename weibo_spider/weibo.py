@@ -30,3 +30,16 @@ class Weibo:
         result += u'评论数：%d\n' % self.comment_num
         result += u'url：https://weibo.cn/comment/%s\n' % self.id
         return result
+
+
+# 微博的关键信息信息
+class WeiboKey:
+    def __init__(self):
+        self.uid = 123456  # 用户 ID
+        self.wid = ''  # 微博唯一ID
+        self.mid = 123456  # 微博评论ID
+
+    def __str__(self):
+        """打印一条微博"""
+        result = "uid: %s, wid: %s, mid: %s" % (self.uid, self.wid, self.mid)
+        return result

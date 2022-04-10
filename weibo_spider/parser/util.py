@@ -7,7 +7,7 @@ import requests
 from lxml import etree
 
 # Set GENERATE_TEST_DATA to True when generating test data.
-GENERATE_TEST_DATA = False
+GENERATE_TEST_DATA = True
 TEST_DATA_DIR = 'tests/testdata'
 URL_MAP_FILE = 'url_map.json'
 logger = logging.getLogger('spider.util')
@@ -17,7 +17,8 @@ def hash_url(url):
     return hashlib.sha224(url.encode('utf8')).hexdigest()
 
 
-def handle_html(cookie, url):
+def handle_html(cookie, url, type='selector'):
+    """处理html"""
     """处理html"""
     try:
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36'
@@ -39,10 +40,18 @@ def handle_html(cookie, url):
                 f.write(json.dumps(url_map, indent=4, ensure_ascii=False))
                 f.truncate()
 
-        selector = etree.HTML(resp.content)
-        return selector
+        if type == 'selector':
+            selector = etree.HTML(resp.content)
+            return selector
+        elif type == 'json':
+            return resp.json()
+        else:
+            return resp.content.decode('utf-8')
+
     except Exception as e:
         logger.exception(e)
+    else:
+        return ''
 
 
 def handle_garbled(info):
@@ -74,7 +83,7 @@ def bid2mid(bid):
         strlen = len(d)
         for char in d:
             power = (strlen - (idx + 1))
-            num += alphabet.index(char) * (base**power)
+            num += alphabet.index(char) * (base ** power)
             idx += 1
             strnum = str(num)
             while (len(d) == 4 and len(strnum) < 7):
