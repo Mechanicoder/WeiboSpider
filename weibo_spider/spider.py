@@ -354,10 +354,18 @@ class Spider:
                 logger.info("未得到任何微博")
                 return
             logger.info("话题 " + topic + " 数量 " + str(len(topic_wb_keys)))
+
+            all_wb = []
             for wb_key in topic_wb_keys:
                 wbc_parser = WbCommentParser(self.cookie, wb_key)
-                wbc_parser.get_weibo_content()
-                wbc_parser.get_comments()
+                wb_info = wbc_parser.get_weibo_content()  # 获取微博内容
+                wb_comments = wbc_parser.get_comments()
+                all_wb.append((wb_info, wb_comments))
+
+                print(u'测试结束')
+                return
+
+            logger.info("话题 " + topic + " 有效微博数量 " + str(len(all_wb)))
 
     def start(self):
         """运行爬虫"""
