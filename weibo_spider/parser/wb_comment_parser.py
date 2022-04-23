@@ -106,10 +106,15 @@ class WbCommentParser(Parser):
             cnt_step = 20
             comment_url = self.make_comment_url(max_id, count)
             max_id = self.get_one_page_comment(comment_url)
+
+            max_id_set = {max_id}  # 加载全部评论后没有返回标志位，反而循环出现评论索引，因此加判断。与网页浏览效果相同
+
             while -1 != max_id:
                 comment_url = self.make_comment_url(max_id, count)
                 max_id = self.get_one_page_comment(comment_url)
-                print(u'已获得评论数量 ', len(self.all_comments), ' max_id ', max_id)
+                if max_id in max_id_set:
+                    break
+                max_id_set.add(max_id)
 
             print(u'获得总评论数量 ', len(self.all_comments))
             return self.all_comments
