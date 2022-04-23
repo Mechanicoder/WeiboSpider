@@ -24,9 +24,10 @@ class TopicParser(Parser):
             logger.warning(u'网页解析出现异常')
             sys.exit()
 
-        login_in = self.selector.xpath('//a[class="LoginBtn_btn_ShXeX LoginBtn_btna_1UuUq"]')
-        if login_in:
-            logger.warning(u'cookie错误或已过期,请按照README中方法重新获取')
+        login_in = self.selector.xpath('//a[@class="LoginBtn_btn_ShXeX LoginBtn_btna_1UuUq"]')
+        refresh = self.selector.xpath('//meta[@http-equiv="refresh"]') # 重定向刷新
+        if login_in or refresh:
+            logger.warning(u'cookie错误或已过期,请按照README中方法重新获取，网页自动刷新？' + str(bool(refresh)))
             sys.exit()
 
     def get_topic_weibos(self):
@@ -71,7 +72,7 @@ class TopicParser(Parser):
         return ''
 
     def get_weibo_key(self, weibo_feed):
-        # 获取微博 key 信息
+        # 获取微博 key 信息: 用户ID uid、微博ID wid、评论ID mid
         weibo_key = WeiboKey()
         weibo_key.mid = int(weibo_feed.xpath('@mid')[0]) # 评论 ID
         wb_url = self.get_weibo_url(weibo_feed)
