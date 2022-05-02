@@ -54,6 +54,8 @@ class WbCommentParser(Parser):
         try:
             wb_url = self.make_weibo_url()
             wb_json = handle_html(self.cookie, wb_url, 'json')
+            return wb_json
+
             if wb_json:
                 check_mid = int(wb_json['mid'])
                 if check_mid == self.weibo_key.mid:
@@ -74,6 +76,7 @@ class WbCommentParser(Parser):
             logger.exception(e)
 
     def parse_comment(self, comment_json):
+        # 从微博评论 json 数据中获取数据
         if comment_json:
             comment = CommentInfo()
             comment = ParserUser(comment_json['user'])
@@ -85,13 +88,15 @@ class WbCommentParser(Parser):
         else:
             return CommentInfo()
 
-    def get_one_page_comment(self, comment_page_url):
-        comments_json = handle_html(self.cookie, comment_page_url, 'json')
-        if comments_json:
-            max_id = comments_json['max_id']  # 更新 max_id
-            for idx in range(0, len(comments_json['data'])):
-                one_comment = comments_json['data'][idx]
-                self.all_comments.append(self.parse_comment(one_comment))
+    def get_page_comment(self, max_id, count):
+        # 获取指定页 max_id 数量为 count 的评论数量
+        comment_url = self.make_comment_url(max_id, count)
+        page_comments = handle_html(self.cookie, comment_url, 'json')
+        if page_comments:
+            max_id = page_comments['max_id']  # 更新 max_id
+            for idx in range(0, len(page_comments['data'])):
+                one_comment = page_comments['data'][idx]
+                self.all_comments.append(one_comment)
             return max_id
         else:
             return -1
@@ -104,14 +109,12 @@ class WbCommentParser(Parser):
             max_id = -1
             count = 20  # 和浏览器数值保持相同：经测试，最大值支持到 200
             cnt_step = 20
-            comment_url = self.make_comment_url(max_id, count)
-            max_id = self.get_one_page_comment(comment_url)
+            max_id = self.get_page_comment(max_id, count)
 
             max_id_set = {max_id}  # 加载全部评论后没有返回标志位，反而循环出现评论索引，因此加判断。与网页浏览效果相同
 
             while -1 != max_id:
-                comment_url = self.make_comment_url(max_id, count)
-                max_id = self.get_one_page_comment(comment_url)
+                max_id = self.get_page_comment(max_id, 20)
                 if max_id in max_id_set:
                     break
                 max_id_set.add(max_id)

@@ -126,6 +126,12 @@ class Spider:
         self.topic = config.get("topic", 1)  # 是否爬取话题
         self.topic_list = config["topic_list"]  # 话题列表
 
+        # writers
+        self.writers = []
+        if 'mongo' in self.write_mode:
+            from .writer import MongoWriter
+            self.writers.append(MongoWriter())
+
     def write_weibo(self, weibos):
         """将爬取到的信息写入文件或数据库"""
         for writer in self.writers:
@@ -358,14 +364,17 @@ class Spider:
             all_wb = []
             for wb_key in topic_wb_keys:
                 wbc_parser = WbCommentParser(self.cookie, wb_key)
-                wb_info = wbc_parser.get_weibo_content()  # 获取微博内容
-                wb_comments = wbc_parser.get_comments()
-                all_wb.append((wb_info, wb_comments))
+                wb_json = wbc_parser.get_weibo_content()  # 获取微博内容
+                wb_comments_json = wbc_parser.get_comments()
 
-                print(u'测试结束')
-                return
+                for writer in self.writers:
+                    writer.write_topic_wb_comments(topic, wb_json, wb_comments_json)
+
+                all_wb.append((wb_json, wb_comments_json))
 
             logger.info("话题 " + topic + " 有效微博数量 " + str(len(all_wb)))
+            print(u'测试结束--仅处理第一个话题')
+            return
 
     def start(self):
         """运行爬虫"""

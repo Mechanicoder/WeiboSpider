@@ -52,6 +52,7 @@ class User():
         self.user_domain = 'cctv'  # 微博用户域名，形如 cctvxinwen
 
 class WeiboInfo(User):
+    # 微博内容
     def __int__(self):
         self.created_at = 'Sun Apr 17 15:10:22 +0800 2022'
         self.attitudes_count = 0  # 点赞数量
@@ -70,6 +71,7 @@ class WeiboInfo(User):
 
 
 class CommentInfo(User):
+    # 微博评论内容
     def __int__(self):
         self.created_at = 'Sun Apr 17 15:10:22 +0800 2022'
         self.floor_num = 0  # 楼层数量
