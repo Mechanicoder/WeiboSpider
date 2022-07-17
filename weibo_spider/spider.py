@@ -354,8 +354,9 @@ class Spider:
             self.get_one_user(user_config)
 
     def start_with_topic_list(self):
+        # 根据话题列表爬取微博及评论
         for topic in self.topic_list:
-            topic_wb_keys = TopicParser(self.cookie, topic).get_topic_weibos()
+            topic_wb_keys = TopicParser(self.cookie, topic).get_topic_weibos()  # 获取微博ID
             if not topic_wb_keys:
                 logger.info("未得到任何微博")
                 return
@@ -365,7 +366,7 @@ class Spider:
             for wb_key in topic_wb_keys:
                 wbc_parser = WbCommentParser(self.cookie, wb_key)
                 wb_json = wbc_parser.get_weibo_content()  # 获取微博内容
-                wb_comments_json = wbc_parser.get_comments()
+                wb_comments_json = wbc_parser.get_comments()    # 获取微博评论
 
                 for writer in self.writers:
                     writer.write_topic_wb_comments(topic, wb_json, wb_comments_json)

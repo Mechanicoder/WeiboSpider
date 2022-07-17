@@ -53,7 +53,7 @@ class MongoWriter(Writer):
         logger.info(u'%s信息写入MongoDB数据库完毕', user.nickname)
 
     def write_topic_wb_comments(self, topic, wb, comment_list):
-        """将爬取的信息写入MongoDB数据库"""
+        """将爬取的信息写入MongoDB数据库，已存在的微博不插入、已存在的评论不插入"""
         try:
             import pymongo
         except ImportError:
