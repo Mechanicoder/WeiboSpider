@@ -91,3 +91,5 @@ class MongoWriter(Writer):
             logger.warning(
                 u'系统中可能没有安装或启动MongoDB数据库，请先根据系统环境安装或启动MongoDB，再运行程序')
             sys.exit()
+        except Exception:
+            logger.warning("遇到了失败")

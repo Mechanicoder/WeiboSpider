@@ -123,6 +123,9 @@ class Spider:
         self.user = User()  # 存储爬取到的用户信息
         self.got_num = 0  # 存储爬取到的微博数
         self.weibo_id_list = []  # 存储爬取到的所有微博id
+
+        self.topic_wait = config["topic_wait"]
+        self.wb_wait = config["wb_wait"]
         self.topic = config.get("topic", 1)  # 是否爬取话题
         self.topic_list = config["topic_list"]  # 话题列表
 
@@ -356,26 +359,45 @@ class Spider:
     def start_with_topic_list(self):
         # 根据话题列表爬取微博及评论
         for topic in self.topic_list:
+            topic_wait = random.randint(*self.topic_wait)
+            logger.info("话题 " + topic + " 等待时间 " + str(topic_wait) + 's')
+            sleep(topic_wait)
+
             topic_wb_keys = TopicParser(self.cookie, topic).get_topic_weibos()  # 获取微博ID
             if not topic_wb_keys:
                 logger.info("未得到任何微博")
                 return
-            logger.info("话题 " + topic + " 数量 " + str(len(topic_wb_keys)))
+            logger.info("\t话题 " + topic + " 数量 " + str(len(topic_wb_keys)))
 
-            all_wb = []
-            for wb_key in topic_wb_keys:
+            # all_wb = []
+            wb_cnt = 0
+            for wb_key in topic_wb_keys: # WeiboKey()
+                wb_wait = random.randint(*self.wb_wait)
+                logger.info("\t微博 " + str(wb_key.uid) + " 开始抓取，等待时间 " + str(wb_wait)+ 's')
+                sleep(topic_wait)
+
                 wbc_parser = WbCommentParser(self.cookie, wb_key)
+
+                wb_wait = random.randint(*self.wb_wait)
+                logger.info("\t微博 " + str(wb_key.uid) + " 获取微博内容 " + str(wb_wait) + 's')
+                sleep(topic_wait)
+
                 wb_json = wbc_parser.get_weibo_content()  # 获取微博内容
+
+                wb_wait = random.randint(*self.wb_wait)
+                logger.info("\t微博 " + str(wb_key.uid) + " 获取评论内容 " + str(wb_wait) + 's')
+                sleep(topic_wait)
+
                 wb_comments_json = wbc_parser.get_comments()    # 获取微博评论
 
                 for writer in self.writers:
                     writer.write_topic_wb_comments(topic, wb_json, wb_comments_json)
 
-                all_wb.append((wb_json, wb_comments_json))
+                ++wb_cnt
+                # all_wb.append((wb_json, wb_comments_json))
 
-            logger.info("话题 " + topic + " 有效微博数量 " + str(len(all_wb)))
-            print(u'测试结束--仅处理第一个话题')
-            return
+            logger.info("\t话题 " + topic + " 有效微博数量 " + str(wb_cnt))
+            # return
 
     def start(self):
         """运行爬虫"""

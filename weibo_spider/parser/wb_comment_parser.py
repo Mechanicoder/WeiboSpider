@@ -119,7 +119,7 @@ class WbCommentParser(Parser):
                     break
                 max_id_set.add(max_id)
 
-            print(u'获得总评论数量 ', len(self.all_comments))
+            # print(u'获得总评论数量 ', len(self.all_comments))
             return self.all_comments
         except Exception as e:
             logger.exception(e)
